@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CanvasTable - HTMLCanvasTableElement</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .code-block {
+            background-color: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+        .canvas-demo {
+            display: block;
+            height: 300px; /* デモの高さを指定 */
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            resize: vertical;
+            overflow: hidden;
+        }
+        p {
+            line-height: 1.6;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/canvas-table/canvas-table@v1/HTMLCanvasTableElement.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>CanvasTable Custom Element</h1>
+        <p>高性能なデータテーブルをCanvasで実現するWeb Component</p>
+    </header>
+
+    <div class="container">
+        
+        <section id="overview">
+            <h2>✨ 概要 (Overview)</h2>
+            <p><code>&lt;canvas-table&gt;</code> は、HTMLの <strong>Canvas要素</strong> を利用してレンダリングされるカスタム要素（Web Component）ベースのデータテーブルです。大量のデータでも高い描画パフォーマンスを発揮するように設計されており、仮想化描画（Virtual Rendering）や柔軟な描画カスタマイズ（<code>CanvasTableModel</code>）をサポートします。</p>
+            <p>本カスタム要素は、<code>&lt;canvas&gt;</code>上でのマウスイベント処理やスクロールバーの描画・操作ロジックも内包しています。</p>
+        </section>
+
+        <section id="cdn">
+            <h2>🔗 CDNの利用</h2>
+            <p>以下のCDNリンクを使用して、プロジェクトに簡単に組み込むことができます。</p>
+            <div class="code-block">
+                &lt;script type="text/javascript" src="https://cdn.jsdelivr.net/gh/canvas-table/canvas-table@v1/HTMLCanvasTableElement.js"&gt;&lt;/script&gt;
+            </div>
+        </section>
+
+        <section id="usage">
+            <h2>💡 基本的な使い方 (Basic Usage)</h2>
+            <p><code>&lt;canvas-table&gt;</code> 要素をHTMLに配置し、JavaScriptで <code>CanvasTableModel</code> のインスタンスを作成して <code>.table</code> プロパティに設定します。</p>
+
+            <h3>HTML</h3>
+            <div class="code-block">
+                &lt;canvas-table id="myTable" class="canvas-demo"&gt;&lt;/canvas-table&gt;
+            </div>
+
+            <h3>JavaScript</h3>
+            <div class="code-block">
+                const tableElement = document.getElementById('myTable');<br>
+                const header = ['ID', '名前', '年齢', 'ステータス'];<br>
+                const data = [<br>
+                &nbsp;&nbsp;[1, 'Alice', 30, true],<br>
+                &nbsp;&nbsp;[2, 'Bob', 24, false],<br>
+                &nbsp;&nbsp;[3, 'Charlie', 35, true],<br>
+                &nbsp;&nbsp;// ... さらに多くのデータ<br>
+                &nbsp;&nbsp;[100, 'Zoe', 28, true]<br>
+                ];<br>
+                <br>
+                // CanvasTableModelの定義がjsファイルに含まれている前提<br>
+                const model = new CanvasTableModel(header, data);<br>
+                <br>
+                // 非常に多くのデータを生成してスクロールを体験<br>
+                for(let i = 4; i &lt; 100; i++){<br>
+                &nbsp;&nbsp;data.push([i + 1, \`Person \$\{i+1\}\`, 20 + (i \% 10), (i \% 3) === 0]);<br>
+                }<br>
+                <br>
+                tableElement.table = model;<br>
+            </div>
+
+            <h3>デモ</h3>
+            <p>以下のエリアがカスタム要素 <code>&lt;canvas-table&gt;</code> です。スクロールやリサイズを試してください。</p>
+            <canvas-table id="demoTable" class="canvas-demo"></canvas-table>
+        </section>
+        
+        <section id="model">
+            <h2>⚙️ データモデル (CanvasTableModel)</h2>
+            <p>描画するデータと、その描画方法（セルのサイズ、スタイル、テキスト描画ロジックなど）は、<strong><code>CanvasTableModel</code></strong> クラスによって管理されます。</p>
+            <ul>
+                <li><strong>コンストラクタ:</strong> <code>new CanvasTableModel(header, data)</code> で初期化します。</li>
+                <li><strong>カスタマイズ:</strong> <code>getWidth(columnNo)</code> や <code>getHeight(rowNo)</code>、そして最も重要な <code>drawData(renderer, rowNo, columnNo)</code> メソッドをオーバーライドすることで、セルの描画内容を完全に制御できます。</li>
+            </ul>
+        </section>
+
+    </div>
+
+    <script type="text/javascript">
+        // ページロード後にデモを実行
+        // HTMLCanvasTableElement.jsで定義されたクラスにアクセスします
+        document.addEventListener('DOMContentLoaded', () => {
+            // クラスはグローバルスコープで利用可能と仮定
+            if (typeof CanvasTableModel === 'undefined') {
+                console.error('CanvasTableModel is not defined. Make sure the script loaded correctly.');
+                return;
+            }
+
+            const tableElement = document.getElementById('demoTable');
+            
+            const header = ['ID', '氏名', '部署', '給与($)', 'アクティブ'];
+            const data = [];
+
+            for(let i = 0; i < 50; i++) {
+                data.push([
+                    i + 1,
+                    `ユーザー #${i + 1}`,
+                    i % 3 === 0 ? '営業' : (i % 3 === 1 ? '開発' : '人事'),
+                    Math.floor(50000 + Math.random() * 50000), // 給与
+                    (i % 5) !== 0 // アクティブステータス
+                ]);
+            }
+            
+            // CanvasTableModelのインスタンスを作成
+            const model = new CanvasTableModel(header, data);
+
+            // セル幅のカスタマイズ例 (drawDataのロジックを元に)
+            model.getWidth = function(columnNo) {
+                if (columnNo === null) return 50; // 行ヘッダ幅
+                switch(columnNo) {
+                    case 0: return 60; // ID
+                    case 1: return 150; // 氏名
+                    case 2: return 100; // 部署
+                    case 3: return 120; // 給与
+                    case 4: return 80; // アクティブ
+                    default: return 120;
+                }
+            };
+            
+            // カスタム要素にモデルを設定
+            tableElement.table = model;
+        });
+    </script>
+
+</body>
+</html>
