@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Table デモページ</title>
+    <style>
+        /* * カスタム要素 <canvas-table> がキャンバスを描画するために、
+         * 表示サイズをCSSで明示的に設定する必要があります。
+         */
+        canvas-table {
+            display: block; /* ブロック要素として表示 */
+            width: 800px;  /* テーブルの幅 */
+            height: 600px; /* テーブルの高さ */
+            border: 1px solid #333;
+            margin: 20px auto; /* 中央寄せと余白 */
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 30px;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #007bff;
+            min-height: 25px; /* メッセージ表示用のスペースを確保 */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Canvas Table のサンプル表示</h1>
+    
+    <canvas-table id="myTable"></canvas-table>
+
+    <div id="message">テーブルのセルをクリックしてください。</div>
+
+    <script src="https://cdn.jsdelivr.net/gh/canvas-table/canvas-table@v1/HTMLCanvasTableElement.js"></script>
+
+    <script>
+        // データの定義
+        const headerData = [
+            "ID", 
+            "プロジェクト名", 
+            "担当者", 
+            "進捗率 (%)", 
+            "完了", 
+            "予算 (USD)"
+        ];
+        
+        const rowData = [];
+        for (let i = 0; i < 100; i++) {
+            const progress = (i * 10) % 100;
+            rowData.push([
+                i + 1,
+                `Project Alpha ${i + 1}`,
+                `User ${String.fromCharCode(65 + (i % 26))}`,
+                progress, // number型として扱う
+                progress === 90, // boolean型として扱う
+                Math.floor(Math.random() * 100000) // number型として扱う
+            ]);
+        }
+        
+        // CanvasTableModel インスタンスの作成
+        const tableModel = CanvasTableModel.fromJSON(JSON.stringify({
+            header: headerData,
+            data: rowData
+        }));
+
+        // <canvas-table> 要素を取得し、モデルを設定
+        const tableElement = document.getElementById('myTable');
+        tableElement.table = tableModel;
+
+        const messageDiv = document.getElementById('message');
+
+        // --- イベントリスナーの例 ---
+        
+        // セルクリックイベントのリスナー
+        tableModel.addEventListener("table-click", (e) => {
+            const row = e.addr.rowNo;
+            const col = e.addr.columnNo;
+            let msg = '';
+            
+            if (row === null && col === null) {
+                msg = '左上のコーナーをクリックしました。';
+            } else if (row === null) {
+                msg = `ヘッダー「${headerData[col]}」をクリックしました。`;
+            } else if (col === null) {
+                msg = `行ヘッダー (Row ${row + 1}) をクリックしました。`;
+            } else {
+                const dataValue = rowData[row][col];
+                msg = `データセルをクリック: (行: ${row + 1}, 列: ${col + 1})、値: **${dataValue}**`;
+            }
+            messageDiv.innerHTML = msg;
+        });
+
+        // スクロールイベントのリスナー
+        tableModel.addEventListener("table-scroll", (e) => {
+            messageDiv.innerHTML = `テーブルがスクロールされました。(OffsetX: ${tableModel.offsetX}, OffsetY: ${tableModel.offsetY})`;
+        });
+
+    </script>
+
+</body>
+</html>
