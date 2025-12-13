@@ -47,6 +47,41 @@
     <script src="https://cdn.jsdelivr.net/gh/canvas-table/canvas-table@v1/HTMLCanvasTableElement.js"></script>
 
     <script>
+        
+        class CustomTable extends CanvasTableModel{
+            constructor(header, data){
+                super(header, data);
+                this.focus = {rowNo: 0, columnNo: 0};
+                this.addEventListener("table-click", this.constructor.focusEvent);
+            }
+            drawData(renderer, rowNo, columnNo){
+                if((this.focus.rowNo == rowNo) && (this.focus.columnNo == columnNo)){
+                    renderer.wrap(object => {
+                        object.table.virtual.rects.focus = new DOMRect(object.cursor.x, object.cursor.y, object.cursor.width, object.cursor.height);
+                    });
+                }
+                super.drawData(renderer, rowNo, columnNo);
+            }
+            drawOverlay(object){
+                const ctx = object.ctx;
+                const rect = this.virtual.rects.focus;
+                super.drawOverlay(object);
+                if(rect != null){
+                    ctx.save();
+                    ctx.strokeStyle  = "#333333";
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                    ctx.restore();
+                }
+            }
+            static focusEvent(e){
+                if((e.addr.rowNo != null) && (e.addr.columnNo != null)){
+                    Object.assign(e.target.focus, e.addr);
+                    e.element.rerender();
+                }
+            }
+        }
+        
         // データの定義
         const headerData = [
             "ID", 
@@ -70,11 +105,8 @@
             ]);
         }
         
-        // CanvasTableModel インスタンスの作成
-        const tableModel = CanvasTableModel.fromJSON(JSON.stringify({
-            header: headerData,
-            data: rowData
-        }));
+        // CustomTable インスタンスの作成
+        const tableModel = new CustomTable(headerData, rowData);
 
         // <canvas-table> 要素を取得し、モデルを設定
         const tableElement = document.getElementById('myTable');
