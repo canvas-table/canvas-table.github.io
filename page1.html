@@ -12,6 +12,7 @@
             display: block; /* ブロック要素として表示 */
             width: 800px;  /* テーブルの幅 */
             height: 600px; /* テーブルの高さ */
+            height: calc(100vh - 10rem);
             border: 1px solid #333;
             margin: 20px auto; /* 中央寄せと余白 */
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
@@ -56,9 +57,7 @@
             }
             drawData(renderer, rowNo, columnNo){
                 if((this.focus.rowNo == rowNo) && (this.focus.columnNo == columnNo)){
-                    renderer.wrap(object => {
-                        object.table.virtual.rects.focus = new DOMRect(object.cursor.x, object.cursor.y, object.cursor.width, object.cursor.height);
-                    });
+                    this.virtual.rects.focus = DOMRect.fromRect(renderer.rect);
                 }
                 super.drawData(renderer, rowNo, columnNo);
             }
@@ -77,6 +76,19 @@
             static focusEvent(e){
                 if((e.addr.rowNo != null) && (e.addr.columnNo != null)){
                     Object.assign(e.target.focus, e.addr);
+                    const {rowNo, columnNo} = e.addr;
+                    const rect = e.element.dataRect;
+                    let minRowNo = rowNo, minColumnNo = columnNo;
+                    for(let height = rect.height - this.getHeight(minRowNo), temp = minRowNo; ((height >= 0) && (temp >= 0)); height -= this.getHeight(--temp)){
+                        minRowNo = temp;
+                    }
+                    for(let width = rect.width - this.getWidth(minColumnNo), temp = minColumnNo; ((width >= 0) && (temp >= 0)); width -= this.getWidth(--temp)){
+                        minColumnNo = temp;
+                    }
+                    Object.assign(this, {
+                        offsetX: Math.max(minColumnNo, Math.min(columnNo, this.offsetX)),
+                        offsetY: Math.max(minRowNo, Math.min(rowNo, this.offsetY))
+                    });
                     e.element.rerender();
                 }
             }
